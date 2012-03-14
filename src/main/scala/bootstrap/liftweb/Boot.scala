@@ -20,7 +20,8 @@ class Boot {
     
     val entries = List(
       Menu.i("Home") / "index", // the simple way to declare a menu
-      Menu.i("Node") / "node",
+      Menu.i("NodeList") / "nodeList",
+      Menu.i("NodeDetail") / "nodeDetail",
       Menu.i("Tree") / "tree"
      )
 

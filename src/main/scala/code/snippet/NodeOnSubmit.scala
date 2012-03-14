@@ -8,32 +8,33 @@ import test.pcohen.NodeHelper
 import org.neo4j.graphdb.Node
 import scala.xml.Text
 
-class NodeOnSubmit extends StatefulSnippet {
+//class NodeOnSubmit extends StatefulSnippet {
+ class NodeOnSubmit {
  
+ private object node extends RequestVar[Option[Node]](None)
   
-  def dispatch() = {case "render" => render
-  case "displayNode" => displayNode}  
+ // def dispatch() = {case "render" => render
+ // case "displayNode" => displayNode}  
   
-  private var node:Option[Node]=None
-  private var nodeName = ""
-  private var version = Int.MaxValue
+  //private var node:Option[Node]=None
+ // private var nodeName = ""
+ // private var version = Int.MaxValue
   
-  def process() = {
+  def process2(nodeName:String, version:Int=Integer.MAX_VALUE) = {
       println("======"+nodeName+" "+version)
-      val _node = NodeHelper.getNode(nodeName,version)
-      if (_node != null) {
-        node = Some(_node)
-      } else {
-        node = None
-      }  
+      NodeHelper.getNode(nodeName,version)
     }
 
 def render = {
     // define some variables to put our values into
-    //var nodeName = ""
-    //var version = Int.MaxValue
+    var nodeName = ""
+    var version = Int.MaxValue
     
     // process the form
+     def process() = {
+      println("======"+nodeName+" "+version)
+      node.set(NodeHelper.getNode(nodeName,version))
+    }
     
     // associate each of the form elements
     // with a function... behavior to perform when the
@@ -47,8 +48,8 @@ def render = {
   
  //def displayNode(ns:NodeSeq) = {
  def displayNode(a:NodeSeq) = {
-    node match {
-      case Some(n:Node) => <span>TOTO {n.getProperty(NodeHelper.NAME_KEY)}</span>
+    node.is match {
+      case Some(n:Node) => <span>TOTO {n.getProperty(NodeHelper.NAME_KEY)} - {n.getProperty(NodeHelper.VERSION_KEY)}</span>
       case _ => <span>None</span>
     }
   }
