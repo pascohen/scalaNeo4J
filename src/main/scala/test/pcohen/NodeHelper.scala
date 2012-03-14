@@ -11,12 +11,15 @@ import org.neo4j.graphdb.Direction
 import scala.collection.JavaConversions._
 import org.neo4j.graphdb.TraversalPosition
 import scala.math.Ordered
+import org.neo4j.graphdb.PropertyContainer
 
 object NodeHelper {
 
   val DB_PATH = "/home/pcohen/utils/neo4j/latest/data/graph.db"
   val NAME_KEY = "nodename"
   val VERSION_KEY = "version"
+  val RELATIONSHIP_KEY = "relationType"
+  val DEFAULT_RELATIONSHIP_TYPE_VALUE = RelationshipClass.DEFAULT_CLASS
 
   private val graphDb: GraphDatabaseService = new EmbeddedGraphDatabase(DB_PATH)
   private val nodeIndex = graphDb.index().forNodes("nodes")
@@ -74,10 +77,13 @@ object NodeHelper {
     }
   }
 
-  def addRelationship(from: Node, to: Node, relationType: RelationshipType): Relationship = {
+  def addRelationship(from: Node, to: Node, relationType: RelationshipType, properties: (String, Any)*): Relationship = {
     val tx = graphDb.beginTx
     try {
       val relationship = from.createRelationshipTo(to, relationType)
+      relationship.setProperty(RELATIONSHIP_KEY,DEFAULT_RELATIONSHIP_TYPE_VALUE.toString())
+
+      properties foreach { p => relationship.setProperty(p._1, p._2) }
       tx.success
       relationship
     } finally {
@@ -100,6 +106,7 @@ object NodeHelper {
 
   def getNode(name: String, maxVersion: Int = Int.MaxValue): Node = {
     val nodes = nodeIndex.get(NAME_KEY, name)
+import org.neo4j.graphdb.RelationshipType
     val it = nodes.iterator()
     findByMaxVersion(it, maxVersion)
   }
@@ -108,9 +115,13 @@ object NodeHelper {
     val node = getNode(name, maxVersion)
     traverseNode(node, relationType, maxVersion)
   }
+  
+  def traverseNodeWithRelationProperty(name: String, relationType: RelationshipType, relationProperty: String, maxVersion: Int = Int.MaxValue): Iterator[Node] = {
+    val node = getNode(name, maxVersion)
+    traverseNode(node, relationType, relationProperty,maxVersion)
+  }
 
-  def traverseNode(node: Node, relationType: RelationshipType, maxVersion: Int): Iterator[Node] = {
-
+  private def traverseNodeWithRelationshipFilter(node: Node, relationType: RelationshipType, maxVersion: Int, relationshipFilter: Relationship => Boolean = { r => true }): Iterator[Node] = {
     val returnableEvaluator = new ReturnableEvaluator {
       override def isReturnableNode(position: TraversalPosition): Boolean =
         {
@@ -119,7 +130,8 @@ object NodeHelper {
 
           if (position.notStartNode()) {
             val relations = position.previousNode().getRelationships(relationType, Direction.INCOMING)
-            val nodes = relations.iterator().map[Node]({ r => r.getStartNode() })
+            val iterator = relations.iterator().filter(relationshipFilter)
+            val nodes = iterator.map[Node]({ r => r.getStartNode() })
             val siblings = nodes filter ({ n => n.getProperty(NAME_KEY) == nodeName })
             val node = findByMaxVersion(siblings, maxVersion)
             if (node == null) {
@@ -139,13 +151,21 @@ object NodeHelper {
     trav.iterator()
   }
 
+  def traverseNode(node: Node, relationType: RelationshipType, maxVersion: Int): Iterator[Node] = {
+    traverseNodeWithRelationshipFilter(node, relationType, maxVersion)
+  }
+
+  def traverseNode(node: Node, relationType: RelationshipType, relationProperty: String, maxVersion: Int): Iterator[Node] = {
+    traverseNodeWithRelationshipFilter(node, relationType, maxVersion, { r: Relationship => r.getProperty(RELATIONSHIP_KEY)==relationProperty })
+  }
+
   def getAvailableVersions(nodeName: String): List[Int] = {
     val nodes = nodeIndex.get(NAME_KEY, nodeName)
     val versions = nodes.iterator.map({ n => n.getProperty(VERSION_KEY).asInstanceOf[Int] })
     versions.toList.sort({ (a, b) => a < b })
   }
 
-  def addProperty(node: Node, property: (String, Any)): Unit = {
+  def addProperty(node: PropertyContainer, property: (String, Any)) = {
     val tx = graphDb.beginTx
     try {
       node.setProperty(property._1, property._2)
@@ -153,9 +173,22 @@ object NodeHelper {
     } finally {
       tx.finish
     }
+
   }
 
-  def addProperty(node: Node, properties: Set[(String, Any)]): Unit = {
+  def addProperties(node: PropertyContainer, properties: (String, Any)*): Unit = {
+    val tx = graphDb.beginTx
+    try {
+      properties foreach { property =>
+        addProperty(node, property)
+      }
+      tx.success
+    } finally {
+      tx.finish
+    }
+  }
+
+  def addProperties(node: PropertyContainer, properties: Set[(String, Any)]): Unit = {
     val tx = graphDb.beginTx
     try {
       for (p <- properties) {
@@ -165,6 +198,10 @@ object NodeHelper {
     } finally {
       tx.finish
     }
+  }
+  
+  def setRelationshipClass(r:Relationship, cl: RelationshipClass.Value) = {
+    r.setProperty(RELATIONSHIP_KEY, cl.toString())
   }
 
   def getProperty(node: Node, propertyKey: String, relationType: RelationshipType, maxVersion: Int = Int.MaxValue): Any = {
@@ -177,35 +214,60 @@ object NodeHelper {
     }
   }
 
-  def main(args: Array[String]): Unit = {
-    registerShutdownHook
-
-    /*
-    val rootProps: Set[(String, Any)] = Set(("un", "one"), ("deux", "two"))
+  def fillDB = {
+    val rootProps: Set[(String, Any)] = Set(("propA_1", "xxx-0"), ("propB_1", "yyy-0"),("propB_3","vvv-0"))
+    
     val root = createRootNode(rootProps)
 
-    val node1 = createNode(root, RelationTypes.CLASS_A, "sub1", 1)
+    val nodeA1Props: Set[(String, Any)] = Set(("propA_1","xxx-1-1"))   
+    val nodeA1 = createNode(root, RelationTypes.CLASS_A, "classA:child1", 1,nodeA1Props)
 
-    val node2Props: Set[(String, Any)] = Set(("trois", "drei"), ("quatre", "four"))
+    val nodeA2Props: Set[(String, Any)] = Set(("propA_1","xxx-1-2"))
+    val nodeA2 = createNode(root, RelationTypes.CLASS_A, "classA:child1", 2, nodeA2Props)
+    
+    val nodeA3Props: Set[(String, Any)] = Set(("propA_1", "xxx-2-1"), ("propA_2", "zzz-2-1"))   
+    val nodeA3 = createNode(nodeA1, RelationTypes.CLASS_A, "classA:child2", 1, nodeA3Props)
+    
+    addRelationship(nodeA2, nodeA3, RelationTypes.CLASS_A)
+    
+    
+    val nodeB1Props: Set[(String, Any)] = Set(("propB_1","yyy-1-1"))   
+    val nodeB1 = createNode(root, RelationTypes.CLASS_B, "classB:child1", 1,nodeB1Props)
+  
+    val nodeB2Props: Set[(String, Any)] = Set(("propB_1","yyy-2-1"))   
+    val nodeB2 = createNode(nodeB1, RelationTypes.CLASS_B, "classB:child2", 1,nodeB2Props)
+   
+    val nodeB3Props: Set[(String, Any)] = Set(("propB_2","www-2-2"))   
+    val nodeB3 = createNode(nodeB1, RelationTypes.CLASS_B, "classB:child2", 2,nodeB3Props)
+   
+    
+    val nodeB4Props: Set[(String, Any)] = Set(("propB_2","www-3-1"))   
+    val nodeB4 = createNode(nodeB2, RelationTypes.CLASS_B, "classB:child3", 1,nodeB4Props)
+   
+    addRelationship(nodeB3, nodeB4, RelationTypes.CLASS_B)
+   
+    
+    val leaf = createNode(nodeA3, RelationTypes.CLASS_A, "leaf", 1)
+    addRelationship(nodeB4,leaf, RelationTypes.CLASS_B)
 
-    val node2 = createNode(root, RelationTypes.CLASS_A, "sub1", 2, node2Props)
-
-    val node3 = createNode(root, RelationTypes.CLASS_B, "sub2", 1)
-
-    val leaf = createNode(node1, RelationTypes.CLASS_A, "leaf", 1)
-    addRelationship(node2, leaf, RelationTypes.CLASS_A)
-    addRelationship(node3, leaf, RelationTypes.CLASS_B)
-*/
+    //addRelationship(node4, leaf, RelationTypes.CLASS_A,(RELATIONSHIP_KEY,RelationshipClass.TEST_CLASS.toString()))
+    
+  }
+  
+  def main(args: Array[String]): Unit = {
+    registerShutdownHook
+    //fillDB
     println(getAvailableVersions("sub1"))
-    val g = traverseNode("leaf", RelationTypes.CLASS_B, 3)
+    val g = traverseNodeWithRelationProperty("leaf", RelationTypes.CLASS_B, "Default", 2)
     if (g != null) {
-      g foreach { n => println(n.getProperty(NAME_KEY) + " - " + n.getProperty(VERSION_KEY)) }
+      g foreach { n => 
+        println(n.getProperty(NAME_KEY) + " - " + n.getProperty(VERSION_KEY))
+        n.getPropertyKeys() foreach { k => println(k+" => "+n.getProperty(k))}
+        }
     }
     println("end")
 
-   // val nn = getNode("sub2")
-   // addProperty(nn,("trois","threee"))
     val n = getNode("leaf")
-    println(getProperty(n, "trois", RelationTypes.CLASS_B, 1))
+    println(getProperty(n, "propB_1", RelationTypes.CLASS_B, 2))
   }
 }
