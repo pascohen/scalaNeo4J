@@ -20,7 +20,6 @@ class NodeVersionList {
     // process the form
      def process() = {
       versionList.set(NodeHelper.getAvailableVersions(nName))
-      println("List = "+versionList.is)
       nodeName.set(nName)
     }
     
