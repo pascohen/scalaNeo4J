@@ -1,0 +1,17 @@
+<lift:surround with="default" at="content">
+ <h3>Retrieves a property for a given version of Node</h3>
+    <div>
+    <lift:NodePropertyDetail.query form="POST">
+      Name of the node: <entry:nodeName /><br/>
+       Version of the node: <entry:version /><br/>
+       Property name: <entry:propertyName /><br/>
+      Type of Rleationship: <entry:relationType /><br/>
+     
+      <br/>
+      <entry:submit />
+      </lift:NodePropertyDetail.query>
+  </div>
+  <br />
+  <div class="lift:NodePropertyDetail.displayDetail" />
+</lift:surround>
+ 

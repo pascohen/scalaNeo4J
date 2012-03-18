@@ -1,0 +1,15 @@
+<lift:surround with="default" at="content">
+  <h3>Displays a hierarchy starting from a given Node</h3>
+  <div>
+    <lift:TreeView.query form="POST">
+      Name of the node: <entry:nodeName /><br/>
+      Version of the node: <entry:version /><br/>
+      Type of Rleationship: <entry:relationType /><br/>
+      <br/>
+      <entry:submit />
+      </lift:TreeView.query>
+  </div>
+  <br />
+  <div class="lift:TreeView.displayHierarchy" />
+</lift:surround>
+ 

@@ -49,6 +49,15 @@ object NodeHelper {
     rootNode
   }
 
+  def getAllNodeNames():Set[String] = {
+    val l = graphDb.getAllNodes().filter({_.hasProperty(NAME_KEY) }).map({ _.getProperty(NAME_KEY).asInstanceOf[String]})
+    l.toSet
+  }
+  
+  def getAllPropertyNames():Set[String] = {
+    graphDb.getAllNodes().flatMap { _.getPropertyKeys()}.toSet.filter(k => k!=NAME_KEY && k!=VERSION_KEY)
+  }
+  
   def createNode(nodeName: String, version: Int, nodeProperties: Set[(String, Any)] = Set(),
       parent: Node, 
       relationType: RelationshipType,
@@ -340,5 +349,12 @@ object NodeHelper {
       case _ =>
     }
 
+    println(getAllNodeNames())
+    println(getAllPropertyNames())
+    
+    val t = traverseNode(node2,RelationTypes.CLASS_B,1)
+    t. foreach { it => 
+    println(it)
+  }
   }
 }
