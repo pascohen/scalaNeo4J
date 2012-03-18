@@ -1,11 +1,23 @@
 <lift:surround with="default" at="content">
   <div>
-    <form class="lift:NodeOnSubmit?form=post">
+    <form class="lift:NodeDetail?form=post">
       Node Name: <input name="nodeName" /><br />
-      Version: <input name="version" /><br />
+      Version  : <input name="version" /><br />
       <input type="submit" value="Submit" />
     </form>
   </div>
-  <lift:NodeOnSubmit.displayNode />
+  <br />
+  <div class="lift:NodeDetail.displayNode" />
+  <div>Get a property</div>
+   <div>
+    <form class="lift:NodePropertyDetail?form=post">
+      Node Name: <input name="nodeName" /><br />
+      Property Name: <input name="propertyName" /><br />
+      Version  : <input name="version" /><br />
+      <input type="submit" value="Submit" />
+    </form>
+  </div>
+  <br />
+  <div class="lift:NodePropertyDetail.displayDetail" />
 </lift:surround>
  

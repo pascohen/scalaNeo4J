@@ -224,7 +224,7 @@ object NodeHelper {
     
     val nodeA3Props: Set[(String, Any)] = Set(("propA_1", "xxx-2-1"), ("propA_2", "zzz-2-1"))   
     val nodeA3 = createNode("classA:child2", 1, nodeA3Props,nodeA1, RelationTypes.CLASS_A)
-    
+
     addRelationship(nodeA2, nodeA3, RelationTypes.CLASS_A)
     
     
@@ -287,7 +287,6 @@ object NodeHelper {
     val nodeB3Props: Set[(String, Any)] = Set(("propB_2","www-2-2"))   
     val nodeB3 = createNode("classBV2:child2", 2,nodeB3Props,nodeB1, RelationTypes.CLASS_B)
    
-    
     val nodeB4Props: Set[(String, Any)] = Set(("propB_2","www-3-1"))   
     val nodeB4 = createNode("classBV2:child3", 1,nodeB4Props,nodeB2, RelationTypes.CLASS_B)
    
@@ -337,7 +336,7 @@ object NodeHelper {
 
     val node2 = getNode("leafV2")
     node2 match {
-      case Some(_) => println(getProperty(node2, "propA_1", RelationTypes.CLASS_B, 1))
+      case Some(_) => println(getProperty(node2, "propA_1", RelationTypes.CLASS_A, 1))
       case _ =>
     }
 
