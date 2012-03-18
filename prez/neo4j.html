@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>NoSQL Presentation based on impress.js | presentation tool based on the power of CSS3 transforms and transitions in modern browsers | by Bartek Szopka @bartaz</title>
+    <title>Scala project Presentation based on impress.js | presentation tool based on the power of CSS3 transforms and transitions in modern browsers | by Bartek Szopka @bartaz</title>
     
     <link href="http://fonts.googleapis.com/css?family=Open+Sans:regular,semibold,italic,italicsemibold|PT+Sans:400,700,400italic,700italic|PT+Serif:400,700,400italic,700italic" rel="stylesheet" />
     <link href="css/impress-demo.css" rel="stylesheet" />
@@ -21,6 +21,7 @@
 	<ul>
 	<li>Introduction</li>
 	<li>Use case</li>
+        <li>SBT</li>
 	<li>Neo4J</li>
         <li>Lift</li>
 	<li>Conclusion</li>
@@ -40,8 +41,8 @@
 	<h3>Properties Management</h3>
 	<ul>
 	<li>Hierarchy/inheritance</li>
-	<li>Graph structure</li>
-	<li>Version management</li>
+	<li>Tree structure</li>
+	<li>Version/scope management</li>
 	</ul>
     </div>
 
@@ -62,48 +63,82 @@
         <li>Lift instead of Play!</li>
 	</ul>
     </div>
+
+   <div id="sbt" class="step slide" data-x="2000" data-y="0">
+        <h1>SBT</h1>
+        <div>Simple Build Tool</div>
+        <ul>
+        <li>Build tool, like Maven/Ivy</li>
+        <li>Manage dependency</li>
+	<li>Scalaish syntax</li>
+        <li>Not so simple</li>
+	</ul>
+   </div>
    
-   <div id="neo4j" class="step slide" data-x="2000" data-y="0">
+   <div id="neo4j" class="step slide" data-x="2500" data-y="0">
         <h1>Neo4J presentation - key features</h1>
         <ul>
 	<li>GraphDB</li>
-	<li>Traversal</li>
+        <li>Transaction support</li>
+	<li>Traversal querying</li>
 	<li>Indexing</li>
-	<li>Querying</li>
-        <li>Transactions</li>
+	<li>Querying with Cypher Query Language</li>
 	</ul>
    </div>
 
-   <div id="neo4j2" class="step slide" data-x="2500" data-y="0">
-        <h1>Neo4J Traversal</h1>
+   <div id="neo4j2" class="step slide" data-x="3000" data-y="0">
+        <h1>Neo4J Node Traversal</h1>
 	<div>Key method: traverse</div>
         <ul>
-        <li>Breadth or depth</li>
+        <li>Breadth or depth first traversal</li>
         <li>Stop evaluator</li>
-        <li>ReturnableEvaluator</li>
+        <li>Returnable Evaluator</li>
         <li>Type of relationship</li>
-        <li>Direction</li>
+        <li>Relationship Direction</li>
 	</ul>
+	<div>More elaborate: TraversalDescription</div>
    </div>
 
-   <div id="lift" class="step slide" data-x="3000" data-y="0">
+   <div id="lift" class="step slide" data-x="3500" data-y="0">
         <h1>Lift presentation - key features</h1>
         <ul>
         <li>View first - snippet</li>
+        <div class="code"><pre>
+&lt;lift:AddEntry.addentry form="POST"&gt;
+     &lt;div id="entryform"&gt;
+          &lt;div class="column span-24"&gt;
+               &lt;h3&gt;Entry Form&lt;/h3&gt;
+               &lt;e:account /&gt; 
+               &lt;e:dateOf /&gt; 
+               &lt;e:value /&gt;
+               &lt;button&gt;
+          &lt;/div&gt;
+     &lt;/div&gt;
+&lt;/lift:AddEntry.addentry&gt;</pre>
+    </div>
         <li>Stateful support</li>
         <li>Request and SessionVars</li>
         <li>CSS Transforms</li>
+  <div class="code"><pre>
+&lt;div class="lift:Ledger.balance"&gt;
+  &lt;span id="balance"&gt;$0&lt;/span&gt; as of &lt;span id="time"&gt;midnight&lt;/span&gt;
+&lt;/div&gt;
+
+ def balance = "#balance" #&gt; currentLedger.formattedBalance &amp;
+    "#time" #&gt; (new java.util.Date).toString
+</pre>
+</div>
         <li>Ajax/Comet integration - smooth transition to WebSockets</li>
-   <li>SiteMaps/LiftRules/URL rewriting</li>
+        <li>SiteMaps/LiftRules/URL rewriting</li>
 	</ul>
    </div>
 
-    <div id="conclusion" class="step" data-x="3000" data-y="0" data-z="-2000">
+    <div id="conclusion" class="step" data-x="4000" data-y="0" data-z="-2000">
         <h1>"The hard way" - Conclusion</h1>
 	<ul>
 	<li>Scala: enthusiast</li>
 	<li>Sbt: surprising and refreshing</li>
-	<li>Neo4J: promising. What about perfs</li>
+	<li>Neo4J: promising. What about perfs ?</li>
         <li>Lift: interesting but complex</li>
 	</ul>
     </div>
